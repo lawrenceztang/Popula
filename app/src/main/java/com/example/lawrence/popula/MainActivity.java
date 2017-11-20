@@ -9,11 +9,14 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 
 import java.util.ArrayList;
@@ -21,7 +24,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextView.OnEditorActionListener{
 
     static Random rand;
     NotificationManager mNotificationManager;
@@ -88,7 +91,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textsFromButton = (Button)findViewById(R.id.girlfriendsButton);
         textsFromEditText = (EditText)findViewById(R.id.girlfriendsInput);
         textsFromButton.setOnClickListener(this);
+
+        nameEditText.setOnEditorActionListener(this);
+
     }
+
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        boolean handled = false;
+        if (actionId == EditorInfo.IME_ACTION_SEND) {
+            nameEditText.clearFocus();
+            switch(v.getId()) {
+                case R.id.frequencyInput: setFrequency(); break;
+                case R.id.nameInput: setName(); break;
+                case R.id.timesRepeatedInput: setNumTexts(); break;
+            }
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            handled = true;
+        }
+        return handled;
+    }
+
 
             public void onClick(View v) {
                 InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -101,57 +125,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             running = true;
                             startButton.setImageResource(R.drawable.pause);
                             sendNotifications();
-                            Object LOCK = new Object();
-                            synchronized (LOCK) {
-                                try {
-                                    wait();
-                                } catch (InterruptedException e) {
-                                }
-                            }
-                            startButton.setImageResource(R.drawable.play);
-                            running = false;
                         } else {
                             startButton.setImageResource(R.drawable.play);
                             running = false;
                         }
                         break;
-
-                    case R.id.nameInputButton:
-                        if (!nameEditText.getText().toString().equals("")) {
-                            personName = nameEditText.getText().toString();
+                    case R.id.nameInputButton: setName(); break;
+                    case R.id.frequencyInputButton: setFrequency(); break;
+                    case R.id.repeatButton: setNumTexts(); break;
+                    case R.id.girlfriendsButton:
+                        if (!textsFromEditText.getText().toString().equals("")) {
+                            textsFrom.add(textsFromEditText.getText().toString());
+                            nameEditText.setHint(personName);
+                            nameEditText.clearFocus();
                         }
-                        enterNameInputButton.setText("");
-                        nameEditText.setHint(personName);
-                        nameEditText.clearFocus();
-                        break;
-
-                    case R.id.frequencyInputButton:
-                        if (!(frequencyEditText.getText().toString().equals(""))) {
-                            try { timeBetweenMessages = Double.parseDouble(frequencyEditText.getText().toString()) * 1000; }
-                            catch (NumberFormatException e) { //resolved with setText
-                            }
-                        }
-                            frequencyEditText.setText("");
-                            frequencyEditText.setHint(Double.toString(timeBetweenMessages / 1000));
-                            frequencyEditText.clearFocus();
-                            break;
-
-                            case R.id.repeatButton:
-                                if (!numTextsEditText.getText().toString().equals("")) {
-                                    try { numTexts = Long.parseLong(numTextsEditText.getText().toString()); }
-                                    catch (NumberFormatException e) { //resolved with setText
-                                    }
-                                }
-                                numTextsEditText.setText("");
-                                numTextsEditText.setHint(Long.toString(numTexts));
-                                numTextsEditText.clearFocus();
-                                break;
-
-                            case R.id.girlfriendsButton:
-                                if (!textsFromEditText.getText().toString().equals("")) {
-                                    textsFrom.add(textsFromEditText.getText().toString());
-                                }
                 }
+            }
+
+            public void setFrequency() {
+                if (!(frequencyEditText.getText().toString().equals(""))) {
+                    try { timeBetweenMessages = Double.parseDouble(frequencyEditText.getText().toString()) * 1000; }
+                    catch (NumberFormatException e) { //resolved with setText
+                    }
+                }
+                frequencyEditText.setText("");
+                frequencyEditText.setHint(Double.toString(timeBetweenMessages / 1000));
+                frequencyEditText.clearFocus();
+            }
+
+            public void setNumTexts() {
+                if (!numTextsEditText.getText().toString().equals("")) {
+                    try { numTexts = Long.parseLong(numTextsEditText.getText().toString()); }
+                    catch (NumberFormatException e) { //resolved with setText
+                    }
+                }
+                numTextsEditText.setText("");
+                numTextsEditText.setHint(Long.toString(numTexts));
+                numTextsEditText.clearFocus();
+            }
+            public void setName() {
+                if (!nameEditText.getText().toString().equals("")) {
+                    personName = nameEditText.getText().toString();
+                }
+                enterNameInputButton.setText("");
+                nameEditText.setHint(personName);
+                nameEditText.clearFocus();
             }
 
             public void sendNotifications() {
@@ -159,22 +177,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     int i = 0;
                     @Override
                     public void run() {
-                        synchronized (this) {
-                            for (i = notificationNum; i < numTexts; i++) {
-                                try {
-                                    Thread.sleep((long) (timeBetweenMessages * rand.nextDouble()));
-                                } catch (InterruptedException e) { //doesn't matter
-                                }
-                                if (!running) {
-                                    return;
-                                }
-                                mBuilder.setContentTitle(randomName("person_names", activity));
-                                mBuilder.setContentText(randomSentence());
-                                mNotificationManager.notify(notificationNum, mBuilder.build());
-                                notificationNum++;
+                        for(i = 0; i < numTexts; i++) {
+                            try { Thread.sleep((long)(timeBetweenMessages * rand.nextDouble())); }
+                            catch (InterruptedException e) { //doesn't matter
                             }
-                            notify();
+                            if(!running) { return; }
+                            mBuilder.setContentTitle(randomName("person_names", activity));
+                            mBuilder.setContentText(randomSentence());
+                            mNotificationManager.notify(notificationNum, mBuilder.build());
+                            notificationNum++;
                         }
+                        runOnUiThread(new Runnable(){
+                            @Override
+                            public void run(){
+                                startButton.setImageResource(R.drawable.play);
+                            }
+                        });
                     }
                 }).start();
             }
