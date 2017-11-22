@@ -7,13 +7,11 @@ import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,23 +22,21 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextView.OnEditorActionListener{
+public class MainActivity extends Activity implements View.OnClickListener, TextView.OnEditorActionListener {
 
     static Random rand;
     NotificationManager mNotificationManager;
     NotificationCompat.Builder mBuilder;
 
     ImageView startButton;
-
-    Button enterNameInputButton;
-    Button frequencyInputButton;
-    Button numTextsButton;
-    Button textsFromButton;
+    View wholeScreen;
 
     EditText nameEditText;
     EditText frequencyEditText;
     EditText numTextsEditText;
     EditText textsFromEditText;
+    View wordComplexityButton;
+    View customMessagesButton;
 
     Timer timer;
     Activity activity;
@@ -58,6 +54,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Locale.setDefault(Locale.US);
+        getActionBar().setHomeButtonEnabled(true);
+
         rand = new Random();
         activity = this;
         timer = new Timer();
@@ -72,162 +70,203 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBuilder.setContentIntent(resultPendingIntent);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        frequencyInputButton = (Button)findViewById(R.id.frequencyInputButton);
-        frequencyEditText = (EditText)findViewById(R.id.frequencyInput);
-        frequencyInputButton.setOnClickListener(this);
+        frequencyEditText = findViewById(R.id.frequencyInput);
+        numTextsEditText = findViewById(R.id.timesRepeatedInput);
+        startButton = findViewById(R.id.startButton);
+        nameEditText = findViewById(R.id.nameInput);
+        textsFromEditText = findViewById(R.id.girlfriendsInput);
+        wholeScreen = findViewById(R.id.totalView);
+        wordComplexityButton = findViewById(R.id.wordComplexityButton);
+        customMessagesButton = findViewById(R.id.customMessagesButton);
 
-        numTextsButton = (Button)findViewById(R.id.repeatButton);
-        numTextsEditText = (EditText)findViewById(R.id.timesRepeatedInput);
-        numTextsButton.setOnClickListener(this);
-
-        startButton = (ImageView)findViewById(R.id.startButton);
         startButton.setImageResource(R.drawable.play);
         startButton.setOnClickListener(this);
-
-        enterNameInputButton = (Button)findViewById(R.id.nameInputButton);
-        nameEditText = (EditText)findViewById(R.id.nameInput);
-        enterNameInputButton.setOnClickListener(this);
-
-        textsFromButton = (Button)findViewById(R.id.girlfriendsButton);
-        textsFromEditText = (EditText)findViewById(R.id.girlfriendsInput);
-        textsFromButton.setOnClickListener(this);
-
+        wholeScreen.setOnClickListener(this);
+        customMessagesButton.setOnClickListener(this);
+        wordComplexityButton.setOnClickListener(this);
         nameEditText.setOnEditorActionListener(this);
-
+        textsFromEditText.setOnEditorActionListener(this);
+        numTextsEditText.setOnEditorActionListener(this);
+        frequencyEditText.setOnEditorActionListener(this);
     }
 
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         boolean handled = false;
-        if (actionId == EditorInfo.IME_ACTION_SEND) {
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
             nameEditText.clearFocus();
-            switch(v.getId()) {
-                case R.id.frequencyInput: setFrequency(); break;
-                case R.id.nameInput: setName(); break;
-                case R.id.timesRepeatedInput: setNumTexts(); break;
+            switch (v.getId()) {
+                case R.id.frequencyInput:
+                    setFrequency();
+                    break;
+                case R.id.nameInput:
+                    setName();
+                    break;
+                case R.id.timesRepeatedInput:
+                    setNumTexts();
+                    break;
             }
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            nameEditText.clearFocus();
+            frequencyEditText.clearFocus();
+            numTextsEditText.clearFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
             handled = true;
         }
         return handled;
     }
 
+    public void onClick(View v) {
+        setGirlfriends();
+        setFrequency();
+        setNumTexts();
+        setName();
 
-            public void onClick(View v) {
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-
-                switch(v.getId()) {
-                    case R.id.startButton:
-                        startButton.setOnClickListener(this);
-                        if (!running) {
-                            running = true;
-                            startButton.setImageResource(R.drawable.pause);
-                            sendNotifications();
-                        } else {
-                            startButton.setImageResource(R.drawable.play);
-                            running = false;
-                        }
-                        break;
-                    case R.id.nameInputButton: setName(); break;
-                    case R.id.frequencyInputButton: setFrequency(); break;
-                    case R.id.repeatButton: setNumTexts(); break;
-                    case R.id.girlfriendsButton:
-                        if (!textsFromEditText.getText().toString().equals("")) {
-                            textsFrom.add(textsFromEditText.getText().toString());
-                            nameEditText.setHint(personName);
-                            nameEditText.clearFocus();
-                        }
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        switch (v.getId()) {
+            case R.id.startButton:
+                startButton.setOnClickListener(this);
+                if (!running) {
+                    running = true;
+                    startButton.setImageResource(R.drawable.pause);
+                    sendNotifications();
+                } else {
+                    startButton.setImageResource(R.drawable.play);
+                    running = false;
                 }
-            }
+                break;
+            case R.id.customMessagesButton:
+                Intent intent = new Intent(this, CustomMessageActivity.class);
+                startActivity(intent);
+            case R.id.wordComplexityButton:
+        }
+    }
 
-            public void setFrequency() {
-                if (!(frequencyEditText.getText().toString().equals(""))) {
-                    try { timeBetweenMessages = Double.parseDouble(frequencyEditText.getText().toString()) * 1000; }
-                    catch (NumberFormatException e) { //resolved with setText
-                    }
-                }
+    public void setFrequency() {
+        if (!(frequencyEditText.getText().toString().equals(""))) {
+            try {
+                timeBetweenMessages = Double.parseDouble(frequencyEditText.getText().toString()) * 1000;
+            } catch (NumberFormatException e) {
                 frequencyEditText.setText("");
-                frequencyEditText.setHint(Double.toString(timeBetweenMessages / 1000));
+                frequencyEditText.setHint("Numbers Only!");
                 frequencyEditText.clearFocus();
+                return;
             }
+        }
+        if (timeBetweenMessages < 100) {
+            timeBetweenMessages = 100;
+        }
+        if (timeBetweenMessages > 134217728) {
+            timeBetweenMessages = 134217728;
+        }
+        frequencyEditText.setText("");
+        frequencyEditText.setHint(Double.toString(timeBetweenMessages / 1000));
+        frequencyEditText.clearFocus();
+    }
 
-            public void setNumTexts() {
-                if (!numTextsEditText.getText().toString().equals("")) {
-                    try { numTexts = Long.parseLong(numTextsEditText.getText().toString()); }
-                    catch (NumberFormatException e) { //resolved with setText
-                    }
-                }
+    public void setGirlfriends() {
+        if (!textsFromEditText.getText().toString().equals("")) {
+            textsFrom.add(textsFromEditText.getText().toString());
+        }
+        textsFromEditText.setHint(personName);
+        textsFromEditText.clearFocus();
+    }
+
+    public void setNumTexts() {
+        if (!numTextsEditText.getText().toString().equals("")) {
+            try {
+                numTexts = Long.parseLong(numTextsEditText.getText().toString());
+            } catch (NumberFormatException e) {
                 numTextsEditText.setText("");
-                numTextsEditText.setHint(Long.toString(numTexts));
+                numTextsEditText.setHint("Numbers Only!");
                 numTextsEditText.clearFocus();
+                return;
             }
-            public void setName() {
-                if (!nameEditText.getText().toString().equals("")) {
-                    personName = nameEditText.getText().toString();
-                }
-                enterNameInputButton.setText("");
-                nameEditText.setHint(personName);
-                nameEditText.clearFocus();
-            }
+        }
+        numTextsEditText.setText("");
+        numTextsEditText.setHint(Long.toString(numTexts));
+        numTextsEditText.clearFocus();
+    }
 
-            public void sendNotifications() {
-                new Thread(new Runnable() {
-                    int i = 0;
+    public void setName() {
+        if (!nameEditText.getText().toString().equals("")) {
+            personName = nameEditText.getText().toString();
+        }
+        nameEditText.setText("");
+        nameEditText.setHint(personName);
+        nameEditText.clearFocus();
+    }
+
+    public void sendNotifications() {
+        new Thread(new Runnable() {
+            int i = 0;
+
+            @Override
+            public void run() {
+                for (i = 0; i < numTexts; i++) {
+                    try {
+                        Thread.sleep((long) (timeBetweenMessages * rand.nextDouble()));
+                    } catch (InterruptedException e) { //doesn't matter
+                    }
+                    if (!running) {
+                        return;
+                    }
+                    mBuilder.setContentTitle(randomName("person_names", activity));
+                    mBuilder.setContentText(randomSentence());
+                    mNotificationManager.notify(notificationNum, mBuilder.build());
+                    notificationNum++;
+                }
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        for(i = 0; i < numTexts; i++) {
-                            try { Thread.sleep((long)(timeBetweenMessages * rand.nextDouble())); }
-                            catch (InterruptedException e) { //doesn't matter
-                            }
-                            if(!running) { return; }
-                            mBuilder.setContentTitle(randomName("person_names", activity));
-                            mBuilder.setContentText(randomSentence());
-                            mNotificationManager.notify(notificationNum, mBuilder.build());
-                            notificationNum++;
-                        }
-                        runOnUiThread(new Runnable(){
-                            @Override
-                            public void run(){
-                                startButton.setImageResource(R.drawable.play);
-                            }
-                        });
+                        startButton.setImageResource(R.drawable.play);
                     }
-                }).start();
+                });
             }
+        }).start();
+    }
 
     public String randomSentence() {
-            int sentenceStructure = rand.nextInt(10);
-            switch(sentenceStructure) {
-                case 1: return"You are sooooo " + randomString("adjectives", this);
-                case 2: return randomQuestion();
-                case 3: return randomGreeting() + " " + personName;
-                case 4: return randomString("verbs", this) + " " + randomString("adverbs", this) + " " + personName;
-                case 5: return "Want to " + randomString("verbs", this) + " at my " + randomString("nouns", this) + " " + personName;
-                case 6: return randomQuestion() + " do you " + randomString("verbs", this) + " " + personName;
-                case 7: return randomString("verbs", this) + " " + randomPreposition() + " " + randomString("nouns", this);
-                case 8: return "talk to me pls";
-                case 9: return randomConjunction() + " " + randomArticle() + " " + randomString("adjectives", this) + " " + randomString("nouns", this) + " " + randomString("verbs", this) + " " + randomString("adverbs", this);
-            }
-            return "";
+        int sentenceStructure = rand.nextInt(10);
+        switch (sentenceStructure) {
+            case 1:
+                return "You are sooooo " + randomString("adjectives", this);
+            case 2:
+                return randomQuestion();
+            case 3:
+                return randomGreeting() + " " + personName;
+            case 4:
+                return randomString("verbs", this) + " " + randomString("adverbs", this) + " " + personName;
+            case 5:
+                return "Want to " + randomString("verbs", this) + " at my " + randomString("nouns", this) + " " + personName;
+            case 6:
+                return randomQuestion() + " do you " + randomString("verbs", this) + " " + personName;
+            case 7:
+                return randomString("verbs", this) + " " + randomPreposition() + " " + randomString("nouns", this);
+            case 8:
+                return "talk to me pls";
+            case 9:
+                return randomConjunction() + " " + randomArticle() + " " + randomString("adjectives", this) + " " + randomString("nouns", this) + " " + randomString("verbs", this) + " " + randomString("adverbs", this);
+        }
+        return "";
     }
 
     public static String randomString(String path, Context context) {
         String word = "";
         int beginningOfWord = 0;
         int randomNum2 = rand.nextInt(context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).length() - 5);
-        for(int p = 1; p < 30; p++) {
-            if(context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).charAt(randomNum2 - p) == ' ') {
+        for (int p = 1; p < 30; p++) {
+            if (context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).charAt(randomNum2 - p) == ' ') {
                 beginningOfWord = randomNum2 - p + 1;
                 break;
             }
         }
-        for(int p = 1; p < 30; p++) {
-            if(context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).charAt(beginningOfWord + p) == ' ') {
+        for (int p = 1; p < 30; p++) {
+            if (context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).charAt(beginningOfWord + p) == ' ') {
                 word = context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).toString().substring(beginningOfWord, beginningOfWord + p);
-                for(int b = 0; b < word.length(); b++) {
-                    if(word.charAt(b) == '_') {
+                for (int b = 0; b < word.length(); b++) {
+                    if (word.charAt(b) == '_') {
                         word = word.substring(0, b) + " " + word.substring(b + 1, word.length());
                     }
                 }
@@ -239,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public static String randomName(String path, Context context) {
         int randomNum = rand.nextInt(1000);
-        for(int p = 0; p < context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).length() - String.valueOf(randomNum).length(); p++) {
+        for (int p = 0; p < context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).length() - String.valueOf(randomNum).length(); p++) {
             if ((context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).toString().substring(p, p + String.valueOf(randomNum).length())).equals(Integer.toString(randomNum))) {
                 for (int b = 1; b < 100; b++) {
                     if (p + b + String.valueOf(randomNum).length() < context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).length() && context.getText(R.string.person_names).charAt(p + b + String.valueOf(randomNum).length()) == ' ') {
