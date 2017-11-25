@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -16,8 +17,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
@@ -34,7 +33,6 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
     EditText nameEditText;
     EditText frequencyEditText;
     EditText numTextsEditText;
-    EditText textsFromEditText;
     View wordComplexityButton;
     View customMessagesButton;
 
@@ -42,10 +40,9 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
     Activity activity;
 
     String personName = "Bob";
-    double timeBetweenMessages = 5000;
+    long timeBetweenMessages = 5000;
     long numTexts = 20;
     int wordComplexity;
-    ArrayList<String> textsFrom;
     boolean running;
     int notificationNum;
 
@@ -54,12 +51,10 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Locale.setDefault(Locale.US);
-        getActionBar().setHomeButtonEnabled(true);
-
+        if(getActionBar() != null) { getActionBar().setHomeButtonEnabled(true); }
         rand = new Random();
         activity = this;
         timer = new Timer();
-        textsFrom = new ArrayList<>();
 
         mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.notification);
         Intent resultIntent = new Intent(this, MainActivity.class);
@@ -74,20 +69,34 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
         numTextsEditText = findViewById(R.id.timesRepeatedInput);
         startButton = findViewById(R.id.startButton);
         nameEditText = findViewById(R.id.nameInput);
-        textsFromEditText = findViewById(R.id.girlfriendsInput);
         wholeScreen = findViewById(R.id.totalView);
         wordComplexityButton = findViewById(R.id.wordComplexityButton);
         customMessagesButton = findViewById(R.id.customMessagesButton);
 
         startButton.setImageResource(R.drawable.play);
+        customMessagesButton.setOnClickListener(this);
         startButton.setOnClickListener(this);
         wholeScreen.setOnClickListener(this);
-        customMessagesButton.setOnClickListener(this);
         wordComplexityButton.setOnClickListener(this);
         nameEditText.setOnEditorActionListener(this);
-        textsFromEditText.setOnEditorActionListener(this);
         numTextsEditText.setOnEditorActionListener(this);
         frequencyEditText.setOnEditorActionListener(this);
+        if(savedInstanceState != null) {
+            personName = savedInstanceState.getString("personName");
+            numTexts = savedInstanceState.getLong("numTexts");
+            timeBetweenMessages = savedInstanceState.getLong("timeBetweenMessages");
+            notificationNum = savedInstanceState.getInt("notificationNum");
+        }
+        loadPreferences();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putString("personName", personName);
+        savedInstanceState.putLong("numTexts", numTexts);
+        savedInstanceState.putLong("timeBetweenMessages", timeBetweenMessages);
+        savedInstanceState.putInt("notificationNum", notificationNum);
+        super.onSaveInstanceState(savedInstanceState);
     }
 
     @Override
@@ -117,7 +126,6 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
     }
 
     public void onClick(View v) {
-        setGirlfriends();
         setFrequency();
         setNumTexts();
         setName();
@@ -143,10 +151,32 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        savePreferences();
+    }
+
+    private void loadPreferences(){
+        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
+        timeBetweenMessages = sharedPreferences.getLong("frequency", timeBetweenMessages);
+        numTexts = sharedPreferences.getLong("numOfTexts", numTexts);
+        personName = sharedPreferences.getString("name", personName);
+    }
+
+    private void savePreferences() {
+        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putLong("frequency", timeBetweenMessages);
+        editor.putLong("numOfTexts", numTexts);
+        editor.putString("name", personName);
+        editor.apply();
+    }
+
     public void setFrequency() {
         if (!(frequencyEditText.getText().toString().equals(""))) {
             try {
-                timeBetweenMessages = Double.parseDouble(frequencyEditText.getText().toString()) * 1000;
+                timeBetweenMessages = Long.parseLong(frequencyEditText.getText().toString()) * 1000;
             } catch (NumberFormatException e) {
                 frequencyEditText.setText("");
                 frequencyEditText.setHint("Numbers Only!");
@@ -165,13 +195,6 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
         frequencyEditText.clearFocus();
     }
 
-    public void setGirlfriends() {
-        if (!textsFromEditText.getText().toString().equals("")) {
-            textsFrom.add(textsFromEditText.getText().toString());
-        }
-        textsFromEditText.setHint(personName);
-        textsFromEditText.clearFocus();
-    }
 
     public void setNumTexts() {
         if (!numTextsEditText.getText().toString().equals("")) {

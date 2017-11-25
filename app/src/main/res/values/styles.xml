@@ -4,7 +4,7 @@
         <item name="android:textColor">@color/darkText</item>
         <item name="android:colorPrimary">@color/lightBlue</item>
         <item name="android:colorPrimaryDark">@color/deepGreenBlue</item>
-        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorPrimary">@color/darkText</item>
     </style>
 
 </resources>

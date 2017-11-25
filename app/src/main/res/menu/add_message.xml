@@ -4,7 +4,7 @@
     <item
         android:title="New Message"
         android:id="@+id/add_message"
-        android:icon="@drawable/arrow"
+        android:icon="@drawable/plus"
         android:orderInCategory="100"
         android:showAsAction="always" />
 </menu>
