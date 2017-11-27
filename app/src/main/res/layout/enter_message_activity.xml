@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context="com.example.lawrence.popula.MainActivity"
+    android:focusable="true"
+    android:id="@+id/topLayout"
+    android:focusableInTouchMode="true">
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,23 +15,23 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Message"
+        android:text="@string/message"
         android:textSize="@dimen/large_text"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="(enter &quot;all&quot; for all messages)"
+        android:text="@string/enter_quot_all_quot_for_all_messages"
         android:textSize="@dimen/small_text"/>
 </LinearLayout>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="I am a potato"
+        android:hint="@string/i_am_a_potato"
         android:id="@+id/customMessageInput"
-        android:textSize="@dimen/large_text"
-        android:imeOptions="actionDone"
-        android:maxLines="1"/>
+        android:textSize="@dimen/medium_text"
+        android:maxLines="1"
+        android:inputType="text"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -36,24 +41,25 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Name "
+            android:text="@string/name"
             android:textSize="@dimen/large_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="(enter &quot;all&quot; for all names)"
+            android:text="@string/enter_quot_all_quot_for_all_names"
             android:textSize="@dimen/small_text" />
     </LinearLayout>
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="John Smith"
+        android:hint="@string/john_smith"
         android:id="@+id/customNameInput"
-        android:textSize="@dimen/large_text"
+        android:textSize="@dimen/medium_text"
         android:imeOptions="actionDone"
-        android:maxLines="1"/>
+        android:maxLines="1"
+        android:inputType="text"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -61,12 +67,14 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CANCEL"
-            android:id="@+id/cancelButton"/>
+            android:text="@string/cancel"
+            android:id="@+id/cancelButton"
+            style="?android:attr/button"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OK"
-            android:id="@+id/okButton"/>
+            android:text="@string/ok"
+            android:id="@+id/okButton"
+            style="?android:attr/button"/>
     </LinearLayout>
 </LinearLayout>

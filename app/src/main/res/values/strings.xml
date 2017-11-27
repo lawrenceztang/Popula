@@ -1012,4 +1012,24 @@
 998	Alianna	Davian
 999	Luz	Gus
 1000	Meilani	Jonathon</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
+    <string name="john_smith">John Smith</string>
+    <string name="enter_quot_all_quot_for_all_names">(enter \"all\" for all names)</string>
+    <string name="name">Name</string>
+    <string name="i_am_a_potato">I am a potato</string>
+    <string name="enter_quot_all_quot_for_all_messages">(enter \"all\" for all messages)</string>
+    <string name="message">Message</string>
+    <string name="your_name">Your Name</string>
+    <string name="bob">Bob</string>
+    <string name="frequency">Frequency</string>
+    <string name="_5_0_seconds">5.0 Seconds</string>
+    <string name="number_of_texts">Number of Texts</string>
+    <string name="i_for_infinity">(i for infinity)</string>
+    <string name="_20">20</string>
+    <string name="custom_messages">Custom Messages</string>
+    <string name="expand">expand</string>
+    <string name="word_complexity">Word Complexity</string>
+    <string name="play">play</string>
+    <string name="remove">Remove</string>
 </resources>

@@ -1,6 +1,5 @@
 package com.example.lawrence.popula;
 
-import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -9,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -21,7 +21,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
 
-public class MainActivity extends Activity implements View.OnClickListener, TextView.OnEditorActionListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextView.OnEditorActionListener {
 
     static Random rand;
     NotificationManager mNotificationManager;
@@ -37,12 +37,12 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
     View customMessagesButton;
 
     Timer timer;
-    Activity activity;
+    AppCompatActivity activity;
 
     String personName = "Bob";
     long timeBetweenMessages = 5000;
     long numTexts = 20;
-    int wordComplexity;
+    //int wordComplexity;
     boolean running;
     int notificationNum;
 
@@ -65,10 +65,10 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
         mBuilder.setContentIntent(resultPendingIntent);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        frequencyEditText = findViewById(R.id.frequencyInput);
-        numTextsEditText = findViewById(R.id.timesRepeatedInput);
-        startButton = findViewById(R.id.startButton);
-        nameEditText = findViewById(R.id.nameInput);
+        frequencyEditText = (EditText)findViewById(R.id.frequencyInput);
+        numTextsEditText = (EditText)findViewById(R.id.timesRepeatedInput);
+        startButton = (ImageView) findViewById(R.id.startButton);
+        nameEditText = (EditText)findViewById(R.id.nameInput);
         wholeScreen = findViewById(R.id.totalView);
         wordComplexityButton = findViewById(R.id.wordComplexityButton);
         customMessagesButton = findViewById(R.id.customMessagesButton);
@@ -88,6 +88,15 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
             notificationNum = savedInstanceState.getInt("notificationNum");
         }
         loadPreferences();
+        nameEditText.setHint(personName);
+        frequencyEditText.setHint(Long.toString(timeBetweenMessages / 1000));
+        numTextsEditText.setHint(Long.toString(numTexts));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Util.hideKeyboard(this);
     }
 
     @Override
@@ -118,8 +127,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
             nameEditText.clearFocus();
             frequencyEditText.clearFocus();
             numTextsEditText.clearFocus();
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            Util.hideKeyboard(this);
             handled = true;
         }
         return handled;
@@ -130,8 +138,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
         setNumTexts();
         setName();
 
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        Util.hideKeyboard(this);
         switch (v.getId()) {
             case R.id.startButton:
                 startButton.setOnClickListener(this);
@@ -152,9 +159,10 @@ public class MainActivity extends Activity implements View.OnClickListener, Text
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
         savePreferences();
+        Util.hideKeyboard(this);
+        super.onPause();
     }
 
     private void loadPreferences(){
