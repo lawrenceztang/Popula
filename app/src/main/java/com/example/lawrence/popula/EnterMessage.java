@@ -10,29 +10,36 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
-public class EnterMessage extends AppCompatActivity implements View.OnClickListener, TextView.OnEditorActionListener{
+public class EnterMessage extends AppCompatActivity implements View.OnClickListener, TextView.OnEditorActionListener, SeekBar.OnSeekBarChangeListener{
 
+    SeekBar percent;
     Button okButton;
     Button cancelButton;
     EditText customMessageEditText;
     EditText customNameEditText;
     LinearLayout myLayout;
+   TextView seekBarValue;
+    int seekBarNum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.enter_message_activity);
 
-        okButton = (Button)findViewById(R.id.okButton);
-        cancelButton = (Button)findViewById(R.id.cancelButton);
+        seekBarValue = findViewById(R.id.seek_bar_value);
+        percent = findViewById(R.id.percent_bar);
+        okButton = findViewById(R.id.okButton);
+        cancelButton = findViewById(R.id.cancelButton);
         okButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
-        customMessageEditText = (EditText)findViewById(R.id.customMessageInput);
-        customNameEditText = (EditText)findViewById(R.id.customNameInput);
+        percent.setOnSeekBarChangeListener(this);
+        customMessageEditText = findViewById(R.id.customMessageInput);
+        customNameEditText = findViewById(R.id.customNameInput);
         customNameEditText.setOnEditorActionListener(this);
-        myLayout = (LinearLayout) this.findViewById(R.id.topLayout);
+        myLayout = this.findViewById(R.id.topLayout);
         customMessageEditText.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
@@ -62,6 +69,7 @@ public class EnterMessage extends AppCompatActivity implements View.OnClickListe
                 setResult(RESULT_CANCELED, intent);
                 finish();
         }
+        intent.putExtra("percent", seekBarNum);
         setResult(RESULT_OK, intent);
         finish();
     }
@@ -82,5 +90,18 @@ public class EnterMessage extends AppCompatActivity implements View.OnClickListe
     protected void onPause() {
         Util.hideKeyboard(this);
         super.onPause();
+    }
+
+    public void onStopTrackingTouch(SeekBar bar) {
+
+    }
+
+    public void onProgressChanged(SeekBar arg0, int progress, boolean fromUser) {
+        seekBarValue.setText(String.valueOf(progress));
+        seekBarNum = progress;
+    }
+
+    public void onStartTrackingTouch(SeekBar bar) {
+
     }
 }

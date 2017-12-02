@@ -5,12 +5,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -21,9 +23,11 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
     LinearLayout layoutList;
     ArrayList<TextView> namesTextViews;
     ArrayList<TextView> messagesTextViews;
+    ArrayList<Integer> percentNums;
     final int MESSAGE_ACTIVITY_RESULT = 0;
-    ArrayList<LinearLayout> messageCombo;
-    final float SLIDE_DISTANCE_FOR_DELETE = 300;
+    float SLIDE_DISTANCE_FOR_DELETE;
+    int width;
+    int height;
 
     LayoutInflater inflater;
 
@@ -33,12 +37,17 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         setContentView(R.layout.custom_message);
         setTitle("Custom Messages");
         if(getSupportActionBar() != null) { getSupportActionBar().setDisplayHomeAsUpEnabled(true); }
-        layoutList = (LinearLayout)findViewById(R.id.messagesList);
+        layoutList = findViewById(R.id.messagesList);
         namesTextViews = new ArrayList<>();
         messagesTextViews = new ArrayList<>();
-        messageCombo = new ArrayList<>();
+        percentNums = new ArrayList<>();
         inflater = getLayoutInflater();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        height = displayMetrics.heightPixels;
+        width = displayMetrics.widthPixels;
         loadPreferences();
+        SLIDE_DISTANCE_FOR_DELETE = getResources().getDimensionPixelSize(R.dimen.remove_width);
     }
 
     @Override
@@ -67,6 +76,7 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         if (requestCode == MESSAGE_ACTIVITY_RESULT) {
             if (resultCode == RESULT_OK) {
                drawGroup(messagesTextViews.size(), data.getStringExtra("customMessageInput"), data.getStringExtra("customNameInput"));
+                percentNums.add(data.getIntExtra("percent", 0));
             }
         }
     }
@@ -88,21 +98,22 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
                 return true;
             case MotionEvent.ACTION_UP:
                 if (downX - event.getX() > SLIDE_DISTANCE_FOR_DELETE) {
-                    int index = 0;
-                    for(int i = 0; i < messageCombo.size(); i++) {
-                        if(view == messageCombo.get(i)) {
-                            index = i;
+                    for(int i = 0; i < messagesTextViews.size(); i++) {
+                        if(view == layoutList.getChildAt(i)) {
+                            layoutList.removeView(view);
+                            messagesTextViews.remove(i);
+                            namesTextViews.remove(i);
                         }
                     }
-                    layoutList.removeView(view);
-                    messagesTextViews.remove(index);
-                    namesTextViews.remove(index);
-                    messageCombo.remove(index);
+
+                }
+                else {
+                    view.scrollTo(0, view.getLeft());
                 }
                 return true;
             case MotionEvent.ACTION_MOVE:
-                view.setX(getLimitedX(event.getX() - downX));
-                break;
+
+                    break;
         }
         return false;
     }
@@ -113,9 +124,11 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         for(int i = 0; i < namesTextViews.size(); i++) {
             editor.putString("name" + i, namesTextViews.get(i).getText().toString());
             editor.putString("message" + i, messagesTextViews.get(i).getText().toString());
+            editor.putInt("percent" + i, percentNums.get(i));
         }
         editor.putInt("messagesSize", messagesTextViews.size());
         editor.apply();
+
     }
 
     private void loadPreferences(){
@@ -138,16 +151,6 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         super.onPause();
     }
 
-    public float getLimitedX(float in) {
-        if(in < - SLIDE_DISTANCE_FOR_DELETE) {
-            return - SLIDE_DISTANCE_FOR_DELETE;
-        }
-        else if(in > 0) {
-            return 0;
-        }
-        return 0;
-    }
-
     public void drawGroup(int num, String message, String name) {
         namesTextViews.add(new TextView(this));
         namesTextViews.get(num).setText(name);
@@ -157,15 +160,23 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         messagesTextViews.get(num).setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.small_text));
         messagesTextViews.get(num).setText(message);
 
-        messageCombo.add(new LinearLayout(this));
-        messageCombo.get(num).setOrientation(LinearLayout.VERTICAL);
-        messageCombo.get(num).addView(namesTextViews.get(num));
-        messageCombo.get(num).addView(messagesTextViews.get(num));
-        messageCombo.get(num).addView(inflater.inflate(R.layout.line_view, layoutList, false));
+        LinearLayout verticalLayout = new LinearLayout(this);
+        verticalLayout.setOrientation(LinearLayout.VERTICAL);
+        verticalLayout.addView(namesTextViews.get(num));
+        verticalLayout.addView(messagesTextViews.get(num));
+        verticalLayout.addView(inflater.inflate(R.layout.line_view, layoutList, false));
 
-        layoutList.addView(messageCombo.get(num));
+        LinearLayout horizontalLayout = new LinearLayout(this);
+        horizontalLayout.setOrientation(LinearLayout.HORIZONTAL);
+        horizontalLayout.addView(verticalLayout);
+        horizontalLayout.addView(inflater.inflate(R.layout.remove_button, layoutList, false));
+        verticalLayout.getLayoutParams().width = width;
 
-        messageCombo.get(num).setOnTouchListener(this);
+        HorizontalScrollView scrollView = new HorizontalScrollView(this);
+        scrollView.addView(horizontalLayout);
+        scrollView.setHorizontalScrollBarEnabled(false);
+
+        layoutList.addView(scrollView);
+        scrollView.setOnTouchListener(this);
     }
-
-}
+    }

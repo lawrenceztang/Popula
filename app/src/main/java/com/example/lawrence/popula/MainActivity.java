@@ -12,11 +12,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
@@ -45,6 +45,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //int wordComplexity;
     boolean running;
     int notificationNum;
+    ArrayList<String> customNames;
+    ArrayList<String> customMessages;
+    ArrayList<Integer> customPercents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         activity = this;
         timer = new Timer();
 
-        mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.drawable.notification);
+        mBuilder = new NotificationCompat.Builder(this, "0").setSmallIcon(R.drawable.notification);
         Intent resultIntent = new Intent(this, MainActivity.class);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
@@ -65,10 +68,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mBuilder.setContentIntent(resultPendingIntent);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        frequencyEditText = (EditText)findViewById(R.id.frequencyInput);
-        numTextsEditText = (EditText)findViewById(R.id.timesRepeatedInput);
-        startButton = (ImageView) findViewById(R.id.startButton);
-        nameEditText = (EditText)findViewById(R.id.nameInput);
+        frequencyEditText = findViewById(R.id.frequencyInput);
+        numTextsEditText = findViewById(R.id.timesRepeatedInput);
+        startButton = findViewById(R.id.startButton);
+        nameEditText = findViewById(R.id.nameInput);
         wholeScreen = findViewById(R.id.totalView);
         wordComplexityButton = findViewById(R.id.wordComplexityButton);
         customMessagesButton = findViewById(R.id.customMessagesButton);
@@ -91,12 +94,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         nameEditText.setHint(personName);
         frequencyEditText.setHint(Long.toString(timeBetweenMessages / 1000));
         numTextsEditText.setHint(Long.toString(numTexts));
+
+        customNames = new ArrayList<>();
+        customMessages = new ArrayList<>();
+        customPercents = new ArrayList<>();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         Util.hideKeyboard(this);
+        loadPreferencesFromCustomMessage();
     }
 
     @Override
@@ -172,6 +180,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         personName = sharedPreferences.getString("name", personName);
     }
 
+    private void loadPreferencesFromCustomMessage() {
+        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
+        for(int i = customNames.size(); i < sharedPreferences.getInt("messagesSize", 0); i++) {
+            customNames.add(sharedPreferences.getString("name" + i, ""));
+            customMessages.add(sharedPreferences.getString("message" + i, ""));
+            customPercents.add(sharedPreferences.getInt("percent" + i, 0));
+        }
+    }
+
     private void savePreferences() {
         SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -228,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         nameEditText.setHint(personName);
         nameEditText.clearFocus();
     }
-
+//// TODO: 12/2/2017  
     public void sendNotifications() {
         new Thread(new Runnable() {
             int i = 0;

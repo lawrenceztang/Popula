@@ -4,5 +4,6 @@
     <dimen name="large_text">25sp</dimen>
     <dimen name="one_dp">1sp</dimen>
     <dimen name="medium_text">22sp</dimen>
+    <dimen name="remove_width">100sp</dimen>
     <dimen name="small_border">10sp</dimen>
 </resources>

@@ -1032,4 +1032,8 @@
     <string name="word_complexity">Word Complexity</string>
     <string name="play">play</string>
     <string name="remove">Remove</string>
+    <string name="new_message">New Message</string>
+    <string name="_100">100</string>
+    <string name="_0">0</string>
+    <string name="_50">50</string>
 </resources>
