@@ -42,7 +42,9 @@ public class EnterMessage extends AppCompatActivity implements View.OnClickListe
         myLayout = this.findViewById(R.id.topLayout);
         customMessageEditText.requestFocus();
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED,0);
+        if(imm != null) {
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        }
     }
 
     @Override

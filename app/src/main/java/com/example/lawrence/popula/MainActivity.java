@@ -1,5 +1,6 @@
 package com.example.lawrence.popula;
 
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
@@ -9,6 +10,7 @@ import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -48,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<String> customNames;
     ArrayList<String> customMessages;
     ArrayList<Integer> customPercents;
+    int totalPercent;
+    int customWeight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +108,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStart() {
         super.onStart();
         Util.hideKeyboard(this);
-        loadPreferencesFromCustomMessage();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -161,7 +169,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.customMessagesButton:
                 Intent intent = new Intent(this, CustomMessageActivity.class);
-                startActivity(intent);
+                for(int i = 0; i < customNames.size(); i++) {
+                    intent.putExtra("customMessage", customMessages.get(i));
+                    intent.putExtra("customName", customNames.get(i));
+                    intent.putExtra("customPercent", customNames.size());
+                }
+                startActivityForResult(intent, 1);
             case R.id.wordComplexityButton:
         }
     }
@@ -174,18 +187,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void loadPreferences(){
-        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
-        timeBetweenMessages = sharedPreferences.getLong("frequency", timeBetweenMessages);
-        numTexts = sharedPreferences.getLong("numOfTexts", numTexts);
-        personName = sharedPreferences.getString("name", personName);
-    }
-
-    private void loadPreferencesFromCustomMessage() {
-        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
-        for(int i = customNames.size(); i < sharedPreferences.getInt("messagesSize", 0); i++) {
-            customNames.add(sharedPreferences.getString("name" + i, ""));
-            customMessages.add(sharedPreferences.getString("message" + i, ""));
-            customPercents.add(sharedPreferences.getInt("percent" + i, 0));
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        timeBetweenMessages = preferences.getLong("frequency", timeBetweenMessages);
+        numTexts = preferences.getLong("numOfTexts", numTexts);
+        personName = preferences.getString("name", personName);
+        for (int i = 0; i < preferences.getInt("messagesSize", 0); i++) {
+            customNames.add(preferences.getString("customName" + i, ""));
+            customMessages.add(preferences.getString("customMessage" + i, ""));
+            customPercents.add(preferences.getInt("customPercent" + i, 0));
         }
     }
 
@@ -195,7 +204,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editor.putLong("frequency", timeBetweenMessages);
         editor.putLong("numOfTexts", numTexts);
         editor.putString("name", personName);
+
+        for (int i = 0; i < customNames.size(); i++) {
+            editor.putString("customName" + i, customNames.get(i));
+            editor.putString("customMessage" + i, customMessages.get(i));
+            editor.putInt("customPercent" + i, customPercents.get(i));
+        }
+        editor.putInt("messagesSize", customNames.size());
         editor.apply();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK) {
+                for (int i = customNames.size(); i < data.getIntExtra("messagesSize", 0); i++) {
+                    customNames.add(data.getStringExtra("customName" + i));
+                    customMessages.add(data.getStringExtra("customMessage" + i));
+                    customPercents.add(data.getIntExtra("customPercent" + i, 0));
+                    totalPercent += customPercents.get(i);
+                }
+                customWeight = data.getIntExtra("weight", 0);
+            }
+        }
     }
 
     public void setFrequency() {
@@ -245,7 +276,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         nameEditText.setHint(personName);
         nameEditText.clearFocus();
     }
-//// TODO: 12/2/2017  
+
     public void sendNotifications() {
         new Thread(new Runnable() {
             int i = 0;
@@ -260,8 +291,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (!running) {
                         return;
                     }
-                    mBuilder.setContentTitle(randomName("person_names", activity));
-                    mBuilder.setContentText(randomSentence());
+                    String[] messageNameArray = randomSentenceName();
+                    mBuilder.setContentText(messageNameArray[0]);
+                    mBuilder.setContentTitle(messageNameArray[1]);
                     mNotificationManager.notify(notificationNum, mBuilder.build());
                     notificationNum++;
                 }
@@ -275,29 +307,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
-    public String randomSentence() {
-        int sentenceStructure = rand.nextInt(10);
-        switch (sentenceStructure) {
-            case 1:
-                return "You are sooooo " + randomString("adjectives", this);
-            case 2:
-                return randomQuestion();
-            case 3:
-                return randomGreeting() + " " + personName;
-            case 4:
-                return randomString("verbs", this) + " " + randomString("adverbs", this) + " " + personName;
-            case 5:
-                return "Want to " + randomString("verbs", this) + " at my " + randomString("nouns", this) + " " + personName;
-            case 6:
-                return randomQuestion() + " do you " + randomString("verbs", this) + " " + personName;
-            case 7:
-                return randomString("verbs", this) + " " + randomPreposition() + " " + randomString("nouns", this);
-            case 8:
-                return "talk to me pls";
-            case 9:
-                return randomConjunction() + " " + randomArticle() + " " + randomString("adjectives", this) + " " + randomString("nouns", this) + " " + randomString("verbs", this) + " " + randomString("adverbs", this);
+    public String[] randomSentenceName() {
+        int randInt = rand.nextInt(100);
+        String[] result = new String[2];
+        if(randInt < customWeight) {
+            int whichOne = rand.nextInt(totalPercent);
+            int total = 0;
+            for (int i = 0; i < customPercents.size(); i++) {
+                if (i < customPercents.size() + 1) {
+                    if (whichOne >= total && whichOne < total + customPercents.get(i)) {
+                        result[0] = customMessages.get(i);
+                        result[1] = customNames.get(i);
+                        return result;
+                    }
+                } else {
+                    result[0] = customMessages.get(i);
+                    result[1] = customNames.get(i);
+                    return result;
+                }
+                total = total + customPercents.get(i);
+            }
         }
-        return "";
+        else {
+            result[1] = randomName("person_names", activity);
+            int sentenceStructure = rand.nextInt(10);
+            switch (sentenceStructure) {
+                case 1:
+                    result[0] = "You are sooooo " + randomString("adjectives", this);
+                case 2:
+                    result[0] = randomQuestion();
+                case 3:
+                    result[0] = randomGreeting() + " " + personName;
+                case 4:
+                    result[0] = randomString("verbs", this) + " " + randomString("adverbs", this) + " " + personName;
+                case 5:
+                    result[0] = "Want to " + randomString("verbs", this) + " at my " + randomString("nouns", this) + " " + personName;
+                case 6:
+                    result[0] = randomQuestion() + " do you " + randomString("verbs", this) + " " + personName;
+                case 7:
+                    result[0] = randomString("verbs", this) + " " + randomPreposition() + " " + randomString("nouns", this);
+                case 8:
+                    result[0] = "talk to me pls";
+                case 9:
+                    result[0] = randomConjunction() + " " + randomArticle() + " " + randomString("adjectives", this) + " " + randomString("nouns", this) + " " + randomString("verbs", this) + " " + randomString("adverbs", this);
+            }
+
+        }
+        return result;
     }
 
     public static String randomString(String path, Context context) {

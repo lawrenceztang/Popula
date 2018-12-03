@@ -1,7 +1,7 @@
 package com.example.lawrence.popula;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -14,12 +14,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class CustomMessageActivity extends AppCompatActivity implements View.OnTouchListener{
+public class CustomMessageActivity extends AppCompatActivity implements View.OnTouchListener, SeekBar.OnSeekBarChangeListener {
 
+    SeekBar percentBar;
+    TextView seekBarValue;
     LinearLayout layoutList;
     ArrayList<TextView> namesTextViews;
     ArrayList<TextView> messagesTextViews;
@@ -28,6 +31,9 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
     float SLIDE_DISTANCE_FOR_DELETE;
     int width;
     int height;
+    int seekBarNum;
+
+    final int NUM_VIEWS_BEFORE_CUSTOM_TEXTS = 3;
 
     LayoutInflater inflater;
 
@@ -37,7 +43,10 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         setContentView(R.layout.custom_message);
         setTitle("Custom Messages");
         if(getSupportActionBar() != null) { getSupportActionBar().setDisplayHomeAsUpEnabled(true); }
+        percentBar = findViewById(R.id.percent_custom_bar);
         layoutList = findViewById(R.id.messagesList);
+        seekBarValue = findViewById(R.id.percent_custom_bar_value);
+        percentBar.setOnSeekBarChangeListener(this);
         namesTextViews = new ArrayList<>();
         messagesTextViews = new ArrayList<>();
         percentNums = new ArrayList<>();
@@ -46,7 +55,7 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         height = displayMetrics.heightPixels;
         width = displayMetrics.widthPixels;
-        loadPreferences();
+        loadActivityData(getIntent());
         SLIDE_DISTANCE_FOR_DELETE = getResources().getDimensionPixelSize(R.dimen.remove_width);
     }
 
@@ -60,7 +69,7 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                NavUtils.navigateUpFromSameTask(this);
+                saveActivityResult();
                 return true;
             case R.id.add_message:
                 Intent intent = new Intent(this, EnterMessage.class);
@@ -76,7 +85,7 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         if (requestCode == MESSAGE_ACTIVITY_RESULT) {
             if (resultCode == RESULT_OK) {
                drawGroup(messagesTextViews.size(), data.getStringExtra("customMessageInput"), data.getStringExtra("customNameInput"));
-                percentNums.add(data.getIntExtra("percent", 0));
+                percentNums.add(data.getIntExtra("percent", 1));
             }
         }
     }
@@ -97,12 +106,14 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
                 downY = event.getY();
                 return true;
             case MotionEvent.ACTION_UP:
+                view.performClick();
                 if (downX - event.getX() > SLIDE_DISTANCE_FOR_DELETE) {
-                    for(int i = 0; i < messagesTextViews.size(); i++) {
+                    for(int i = NUM_VIEWS_BEFORE_CUSTOM_TEXTS; i < messagesTextViews.size() + NUM_VIEWS_BEFORE_CUSTOM_TEXTS; i++) {
                         if(view == layoutList.getChildAt(i)) {
                             layoutList.removeView(view);
-                            messagesTextViews.remove(i);
-                            namesTextViews.remove(i);
+                            messagesTextViews.remove(i - NUM_VIEWS_BEFORE_CUSTOM_TEXTS);
+                            namesTextViews.remove(i - NUM_VIEWS_BEFORE_CUSTOM_TEXTS);
+                            percentNums.remove(i - NUM_VIEWS_BEFORE_CUSTOM_TEXTS);
                         }
                     }
 
@@ -118,35 +129,34 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         return false;
     }
 
-    private void savePreferences(){
-        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
+    private void saveActivityResult(){
+        Intent editor = new Intent();
         for(int i = 0; i < namesTextViews.size(); i++) {
-            editor.putString("name" + i, namesTextViews.get(i).getText().toString());
-            editor.putString("message" + i, messagesTextViews.get(i).getText().toString());
-            editor.putInt("percent" + i, percentNums.get(i));
+            editor.putExtra("customName" + i, namesTextViews.get(i).getText().toString());
+            editor.putExtra("customMessage" + i, messagesTextViews.get(i).getText().toString());
+            editor.putExtra("customPercent" + i, percentNums.get(i));
         }
-        editor.putInt("messagesSize", messagesTextViews.size());
-        editor.apply();
-
+        editor.putExtra("messagesSize", messagesTextViews.size());
+        editor.putExtra("weight", seekBarNum);
+        setResult(Activity.RESULT_OK, editor);
+        finish();
     }
 
-    private void loadPreferences(){
-        SharedPreferences sharedPreferences = getPreferences(MODE_PRIVATE);
-        for(int i = 0; i < sharedPreferences.getInt("messagesSize", 0); i++) {
-            drawGroup(i, sharedPreferences.getString("message" + i, ""), sharedPreferences.getString("name" + i, ""));
+    private void loadActivityData(Intent intent){
+        for(int i = 0; i < intent.getIntExtra("messagesSize", 0); i++) {
+            drawGroup(i, intent.getStringExtra("customMessage" + i), intent.getStringExtra("name" + i));
+            percentNums.add(intent.getIntExtra("customPercent" + i, 0));
         }
     }
 
     @Override
     public void onBackPressed() {
-        savePreferences();
+        saveActivityResult();
         super.onBackPressed();
     }
 
     @Override
     protected void onPause() {
-        savePreferences();
         Util.hideKeyboard(this);
         super.onPause();
     }
@@ -178,5 +188,19 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
 
         layoutList.addView(scrollView);
         scrollView.setOnTouchListener(this);
+
+    }
+
+    public void onStopTrackingTouch(SeekBar bar) {
+
+    }
+
+    public void onProgressChanged(SeekBar arg0, int progress, boolean fromUser) {
+        seekBarValue.setText(String.valueOf(progress));
+        seekBarNum = progress;
+    }
+
+    public void onStartTrackingTouch(SeekBar bar) {
+
     }
     }
