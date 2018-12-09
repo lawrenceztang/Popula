@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.lawrence.popula.MainActivity">
+    tools:context="com.innovativeutilities.lawrence.popula.MainActivity">
 
     <TextView
         android:layout_width="wrap_content"
@@ -71,12 +71,6 @@
             android:layout_weight="0"
             android:text="@string/number_of_texts"
             android:textSize="@dimen/large_text" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/i_for_infinity"
-            android:textSize="@dimen/small_text" />
     </LinearLayout>
 
     <EditText
@@ -115,17 +109,6 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:src="@drawable/arrow"
-            android:maxHeight="25dp"
-            android:adjustViewBounds="true"
-            android:rotation="180"
-            android:layout_marginEnd="10dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/expand"/>
     </LinearLayout>
 
     <View
@@ -133,38 +116,64 @@
         android:layout_height="1dp"
         android:background="@color/lightGrey" />
 
+    <!--<LinearLayout-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:orientation="horizontal"-->
+        <!--android:id="@+id/wordComplexityButton"-->
+        <!--android:clickable="true">-->
+
+        <!--<TextView-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="@string/word_complexity"-->
+            <!--android:textSize="@dimen/large_text"-->
+            <!--android:layout_marginStart="@dimen/small_border"/>-->
+
+        <!--<View-->
+            <!--android:layout_width="0dp"-->
+            <!--android:layout_height="0dp"-->
+            <!--android:layout_weight="1" />-->
+
+        <!--<ImageView-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:clickable="true"-->
+            <!--android:src="@drawable/arrow"-->
+            <!--android:maxHeight="25dp"-->
+            <!--android:adjustViewBounds="true"-->
+            <!--android:rotation="180"-->
+            <!--android:layout_marginEnd="10dp"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:contentDescription="@string/expand"/>-->
+    <!--</LinearLayout>-->
+
+    <!--<View-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="1dp"-->
+        <!--android:background="@color/lightGrey" />-->
+
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:id="@+id/wordComplexityButton"
-        android:clickable="true">
+        android:id="@+id/aboutButton"
+        android:clickable="true"
+        android:layout_marginStart="@dimen/small_border">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/word_complexity"
-            android:textSize="@dimen/large_text"
-            android:layout_marginStart="@dimen/small_border"/>
+            android:text="@string/about"
+            android:textSize="@dimen/small_text" />
 
         <View
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:src="@drawable/arrow"
-            android:maxHeight="25dp"
-            android:adjustViewBounds="true"
-            android:rotation="180"
-            android:layout_marginEnd="10dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/expand"/>
     </LinearLayout>
-
     <View
         android:layout_width="fill_parent"
         android:layout_height="1dp"
@@ -172,13 +181,12 @@
 
     <ImageView
         android:id="@+id/startButton"
-        android:layout_width="wrap_content"
+        android:layout_width="100dp"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:clickable="true"
         android:src="@drawable/play"
         android:adjustViewBounds="true"
-        android:maxHeight="150dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="10dp"
         android:contentDescription="@string/play"/>

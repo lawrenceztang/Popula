@@ -1,4 +1,4 @@
-package com.example.lawrence.popula;
+package com.innovativeutilities.lawrence.popula;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

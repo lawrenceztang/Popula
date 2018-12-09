@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.lawrence.popula">
+    package="com.innovativeutilities.lawrence.popula">
 
     <application
         android:allowBackup="true"
@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".MainActivity"
+        <activity android:name="com.innovativeutilities.lawrence.popula.MainActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -18,28 +18,19 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".CustomMessageActivity"
-            android:parentActivityName="com.example.lawrence.popula.MainActivity"
+        <activity android:name="com.innovativeutilities.lawrence.popula.CustomMessageActivity"
+            android:parentActivityName="com.innovativeutilities.lawrence.popula.MainActivity"
             android:launchMode="singleTop">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-                />
-            </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.lawrence.popula.MainActivity" />
+                android:value="com.innovativeutilities.lawrence.popula.MainActivity" />
         </activity>
 
-        <activity android:name=".EnterMessage"
-            android:parentActivityName="com.example.lawrence.popula.CustomMessageActivity" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+        <activity android:name="com.innovativeutilities.lawrence.popula.EnterMessage"
+            android:parentActivityName="com.innovativeutilities.lawrence.popula.CustomMessageActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.lawrence.popula.CustomMessageActivity" />
+                android:value="com.innovativeutilities.lawrence.popula.CustomMessageActivity" />
         </activity>
 
     </application>

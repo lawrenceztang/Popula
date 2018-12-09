@@ -1,9 +1,8 @@
-package com.example.lawrence.popula;
+package com.innovativeutilities.lawrence.popula;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -26,14 +25,14 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
     LinearLayout layoutList;
     ArrayList<TextView> namesTextViews;
     ArrayList<TextView> messagesTextViews;
-    ArrayList<Integer> percentNums;
+//    ArrayList<Integer> percentNums;
     final int MESSAGE_ACTIVITY_RESULT = 0;
     float SLIDE_DISTANCE_FOR_DELETE;
     int width;
     int height;
     int seekBarNum;
 
-    final int NUM_VIEWS_BEFORE_CUSTOM_TEXTS = 3;
+    final int NUM_VIEWS_BEFORE_CUSTOM_TEXTS = 4;
 
     LayoutInflater inflater;
 
@@ -49,14 +48,15 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         percentBar.setOnSeekBarChangeListener(this);
         namesTextViews = new ArrayList<>();
         messagesTextViews = new ArrayList<>();
-        percentNums = new ArrayList<>();
+//        percentNums = new ArrayList<>();
         inflater = getLayoutInflater();
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         height = displayMetrics.heightPixels;
         width = displayMetrics.widthPixels;
-        loadActivityData(getIntent());
         SLIDE_DISTANCE_FOR_DELETE = getResources().getDimensionPixelSize(R.dimen.remove_width);
+        loadActivityData(getIntent());
+
     }
 
     @Override
@@ -85,7 +85,7 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         if (requestCode == MESSAGE_ACTIVITY_RESULT) {
             if (resultCode == RESULT_OK) {
                drawGroup(messagesTextViews.size(), data.getStringExtra("customMessageInput"), data.getStringExtra("customNameInput"));
-                percentNums.add(data.getIntExtra("percent", 1));
+//                percentNums.add(data.getIntExtra("percent", 1));
             }
         }
     }
@@ -113,7 +113,7 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
                             layoutList.removeView(view);
                             messagesTextViews.remove(i - NUM_VIEWS_BEFORE_CUSTOM_TEXTS);
                             namesTextViews.remove(i - NUM_VIEWS_BEFORE_CUSTOM_TEXTS);
-                            percentNums.remove(i - NUM_VIEWS_BEFORE_CUSTOM_TEXTS);
+//                            percentNums.remove(i - NUM_VIEWS_BEFORE_CUSTOM_TEXTS);
                         }
                     }
 
@@ -134,19 +134,23 @@ public class CustomMessageActivity extends AppCompatActivity implements View.OnT
         for(int i = 0; i < namesTextViews.size(); i++) {
             editor.putExtra("customName" + i, namesTextViews.get(i).getText().toString());
             editor.putExtra("customMessage" + i, messagesTextViews.get(i).getText().toString());
-            editor.putExtra("customPercent" + i, percentNums.get(i));
+//            editor.putExtra("customPercent" + i, percentNums.get(i));
         }
-        editor.putExtra("messagesSize", messagesTextViews.size());
         editor.putExtra("weight", seekBarNum);
         setResult(Activity.RESULT_OK, editor);
         finish();
     }
 
     private void loadActivityData(Intent intent){
-        for(int i = 0; i < intent.getIntExtra("messagesSize", 0); i++) {
-            drawGroup(i, intent.getStringExtra("customMessage" + i), intent.getStringExtra("name" + i));
-            percentNums.add(intent.getIntExtra("customPercent" + i, 0));
+        for(int i = 0; ; i++) {
+            if(intent.getStringExtra("customMessage" + i) == null) {
+                break;
+            }
+            drawGroup(i, intent.getStringExtra("customMessage" + i), intent.getStringExtra("customName" + i));
+//            percentNums.add(intent.getIntExtra("customPercent" + i, 0));
         }
+        seekBarNum = intent.getIntExtra("weight", 0);
+        percentBar.setProgress(seekBarNum);
     }
 
     @Override

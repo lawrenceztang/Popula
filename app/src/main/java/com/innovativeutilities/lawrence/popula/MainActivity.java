@@ -1,16 +1,17 @@
-package com.example.lawrence.popula;
+package com.innovativeutilities.lawrence.popula;
 
 import android.app.Activity;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -18,9 +19,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, TextView.OnEditorActionListener {
@@ -37,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     EditText numTextsEditText;
     View wordComplexityButton;
     View customMessagesButton;
+    View aboutButton;
 
     Timer timer;
     AppCompatActivity activity;
@@ -49,8 +56,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int notificationNum;
     ArrayList<String> customNames;
     ArrayList<String> customMessages;
-    ArrayList<Integer> customPercents;
-    int totalPercent;
+    //    ArrayList<Integer> customPercents;
+//    int totalPercent;
     int customWeight;
 
     @Override
@@ -58,12 +65,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Locale.setDefault(Locale.US);
-        if(getActionBar() != null) { getActionBar().setHomeButtonEnabled(true); }
+        if (getActionBar() != null) {
+            getActionBar().setHomeButtonEnabled(true);
+        }
         rand = new Random();
         activity = this;
         timer = new Timer();
 
-        mBuilder = new NotificationCompat.Builder(this, "0").setSmallIcon(R.drawable.notification);
+        mBuilder = new NotificationCompat.Builder(this, "0").setSmallIcon(R.drawable.notification_icon);
         Intent resultIntent = new Intent(this, MainActivity.class);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
@@ -71,37 +80,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
         mBuilder.setContentIntent(resultPendingIntent);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        createNotificationChannel();
 
         frequencyEditText = findViewById(R.id.frequencyInput);
         numTextsEditText = findViewById(R.id.timesRepeatedInput);
         startButton = findViewById(R.id.startButton);
         nameEditText = findViewById(R.id.nameInput);
         wholeScreen = findViewById(R.id.totalView);
-        wordComplexityButton = findViewById(R.id.wordComplexityButton);
+//        wordComplexityButton = findViewById(R.id.wordComplexityButton);
         customMessagesButton = findViewById(R.id.customMessagesButton);
+        aboutButton = findViewById(R.id.aboutButton);
 
         startButton.setImageResource(R.drawable.play);
         customMessagesButton.setOnClickListener(this);
+        aboutButton.setOnClickListener(this);
         startButton.setOnClickListener(this);
         wholeScreen.setOnClickListener(this);
-        wordComplexityButton.setOnClickListener(this);
+//        wordComplexityButton.setOnClickListener(this);
         nameEditText.setOnEditorActionListener(this);
         numTextsEditText.setOnEditorActionListener(this);
         frequencyEditText.setOnEditorActionListener(this);
-        if(savedInstanceState != null) {
+
+        if (savedInstanceState != null) {
             personName = savedInstanceState.getString("personName");
             numTexts = savedInstanceState.getLong("numTexts");
             timeBetweenMessages = savedInstanceState.getLong("timeBetweenMessages");
             notificationNum = savedInstanceState.getInt("notificationNum");
         }
+        customNames = new ArrayList<>();
+        customMessages = new ArrayList<>();
         loadPreferences();
         nameEditText.setHint(personName);
         frequencyEditText.setHint(Long.toString(timeBetweenMessages / 1000));
         numTextsEditText.setHint(Long.toString(numTexts));
 
-        customNames = new ArrayList<>();
-        customMessages = new ArrayList<>();
-        customPercents = new ArrayList<>();
+
+//        customPercents = new ArrayList<>();
     }
 
     @Override
@@ -155,7 +169,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setName();
 
         Util.hideKeyboard(this);
+        Intent intent;
         switch (v.getId()) {
+
             case R.id.startButton:
                 startButton.setOnClickListener(this);
                 if (!running) {
@@ -168,14 +184,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.customMessagesButton:
-                Intent intent = new Intent(this, CustomMessageActivity.class);
-                for(int i = 0; i < customNames.size(); i++) {
-                    intent.putExtra("customMessage", customMessages.get(i));
-                    intent.putExtra("customName", customNames.get(i));
-                    intent.putExtra("customPercent", customNames.size());
+                intent = new Intent(this, CustomMessageActivity.class);
+                for (int i = 0; i < customNames.size(); i++) {
+                    intent.putExtra("customMessage" + i, customMessages.get(i));
+                    intent.putExtra("customName" + i, customNames.get(i));
+//                    intent.putExtra("customPercent", customNames.size());
                 }
+                intent.putExtra("weight", customWeight);
                 startActivityForResult(intent, 1);
-            case R.id.wordComplexityButton:
+//            case R.id.wordComplexityButton:
+            case R.id.aboutButton:
+                intent = new Intent(this, AboutActivity.class);
+                startActivity(intent);
         }
     }
 
@@ -186,15 +206,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onPause();
     }
 
-    private void loadPreferences(){
+    private void loadPreferences() {
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         timeBetweenMessages = preferences.getLong("frequency", timeBetweenMessages);
         numTexts = preferences.getLong("numOfTexts", numTexts);
         personName = preferences.getString("name", personName);
-        for (int i = 0; i < preferences.getInt("messagesSize", 0); i++) {
+        customWeight = (int) preferences.getLong("customWeight", customWeight);
+        for (int i = 0; ; i++) {
+            if (preferences.getString("customMessage" + i, "_").equals("_")) {
+                break;
+            }
+
             customNames.add(preferences.getString("customName" + i, ""));
             customMessages.add(preferences.getString("customMessage" + i, ""));
-            customPercents.add(preferences.getInt("customPercent" + i, 0));
+//            customPercents.add(preferences.getInt("customPercent" + i, 0));
         }
     }
 
@@ -204,13 +229,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editor.putLong("frequency", timeBetweenMessages);
         editor.putLong("numOfTexts", numTexts);
         editor.putString("name", personName);
+        editor.putLong("customWeight", customWeight);
 
         for (int i = 0; i < customNames.size(); i++) {
             editor.putString("customName" + i, customNames.get(i));
             editor.putString("customMessage" + i, customMessages.get(i));
-            editor.putInt("customPercent" + i, customPercents.get(i));
+//            editor.putInt("customPercent" + i, customPercents.get(i));
         }
-        editor.putInt("messagesSize", customNames.size());
         editor.apply();
     }
 
@@ -218,11 +243,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_OK) {
-                for (int i = customNames.size(); i < data.getIntExtra("messagesSize", 0); i++) {
+                for (int i = customNames.size(); ; i++) {
+                    if (data.getStringExtra("customName" + i) == (null)) {
+                        break;
+                    }
+
                     customNames.add(data.getStringExtra("customName" + i));
                     customMessages.add(data.getStringExtra("customMessage" + i));
-                    customPercents.add(data.getIntExtra("customPercent" + i, 0));
-                    totalPercent += customPercents.get(i);
+//                    customPercents.add(data.getIntExtra("customPercent" + i, 0));
+//                    totalPercent += customPercents.get(i);
                 }
                 customWeight = data.getIntExtra("weight", 0);
             }
@@ -307,77 +336,167 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("0", "Messages", NotificationManager.IMPORTANCE_DEFAULT);
+            mNotificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    final String ADVERB = "r";
+    final String VERB = "v";
+    final String NOUN = "n";
+    final String ADJECTIVE = "j";
+
     public String[] randomSentenceName() {
         int randInt = rand.nextInt(100);
         String[] result = new String[2];
-        if(randInt < customWeight) {
-            int whichOne = rand.nextInt(totalPercent);
-            int total = 0;
-            for (int i = 0; i < customPercents.size(); i++) {
-                if (i < customPercents.size() + 1) {
-                    if (whichOne >= total && whichOne < total + customPercents.get(i)) {
-                        result[0] = customMessages.get(i);
-                        result[1] = customNames.get(i);
-                        return result;
-                    }
-                } else {
-                    result[0] = customMessages.get(i);
-                    result[1] = customNames.get(i);
-                    return result;
-                }
-                total = total + customPercents.get(i);
-            }
-        }
-        else {
+        if (randInt < customWeight) {
+//            int whichOne = rand.nextInt(totalPercent);
+//            int total = 0;
+//            for (int i = 0; i < customPercents.size(); i++) {
+//                if (i < customPercents.size() + 1) {
+//                    if (whichOne >= total && whichOne < total + customPercents.get(i)) {
+//                        result[0] = customMessages.get(i);
+//                        result[1] = customNames.get(i);
+//                        return result;
+//                    }
+//                } else {
+//                    result[0] = customMessages.get(i);
+//                    result[1] = customNames.get(i);
+//                    return result;
+//                }
+//                total = total + customPercents.get(i);
+//            }
+
+            int whichOne = rand.nextInt(customMessages.size());
+            result[0] = customMessages.get(whichOne);
+            result[1] = customNames.get(whichOne);
+        } else {
             result[1] = randomName("person_names", activity);
             int sentenceStructure = rand.nextInt(10);
             switch (sentenceStructure) {
                 case 1:
-                    result[0] = "You are sooooo " + randomString("adjectives", this);
+                    result[0] = "You are sooooo " + randomString(ADJECTIVE);
                 case 2:
                     result[0] = randomQuestion();
                 case 3:
                     result[0] = randomGreeting() + " " + personName;
                 case 4:
-                    result[0] = randomString("verbs", this) + " " + randomString("adverbs", this) + " " + personName;
+                    result[0] = randomString(VERB) + " " + randomString(ADVERB) + " " + personName;
                 case 5:
-                    result[0] = "Want to " + randomString("verbs", this) + " at my " + randomString("nouns", this) + " " + personName;
+                    result[0] = "Want to " + randomString(VERB) + " at my " + randomString(NOUN) + " " + personName;
                 case 6:
-                    result[0] = randomQuestion() + " do you " + randomString("verbs", this) + " " + personName;
+                    result[0] = randomQuestion() + " do you " + randomString(VERB) + " " + personName;
                 case 7:
-                    result[0] = randomString("verbs", this) + " " + randomPreposition() + " " + randomString("nouns", this);
+                    result[0] = randomString(VERB) + " " + randomPreposition() + " " + randomString(NOUN);
                 case 8:
                     result[0] = "talk to me pls";
                 case 9:
-                    result[0] = randomConjunction() + " " + randomArticle() + " " + randomString("adjectives", this) + " " + randomString("nouns", this) + " " + randomString("verbs", this) + " " + randomString("adverbs", this);
+                    result[0] = randomConjunction() + " " + randomArticle() + " " + randomString(ADJECTIVE) + " " + randomString(NOUN) + " " + randomString(VERB) + " " + randomString(ADVERB);
             }
 
         }
         return result;
     }
 
-    public static String randomString(String path, Context context) {
-        String word = "";
-        int beginningOfWord = 0;
-        int randomNum2 = rand.nextInt(context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).length() - 5);
-        for (int p = 1; p < 30; p++) {
-            if (context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).charAt(randomNum2 - p) == ' ') {
-                beginningOfWord = randomNum2 - p + 1;
-                break;
+    //todo
+    public String randomString(String type) {
+        try {
+            Scanner scan = new Scanner(getAssets().open("most_common_words.txt"));
+            int lineNum = rand.nextInt(4999);
+            for (int i = 0; i < lineNum; i++) {
+                scan.nextLine();
             }
+            for(int i = lineNum; ; i++) {
+                if(i >= 5000) {
+                    i = 0;
+                    scan = new Scanner(getAssets().open("most_common_words.txt"));
+                }
+                String line = scan.nextLine();
+                if(getStringType(line).equals(type)) {
+                    return getWord(line);
+                }
+            }
+
+        } catch (Exception e) {
+
         }
-        for (int p = 1; p < 30; p++) {
-            if (context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).charAt(beginningOfWord + p) == ' ') {
-                word = context.getText(context.getResources().getIdentifier(path, "string", context.getPackageName())).toString().substring(beginningOfWord, beginningOfWord + p);
-                for (int b = 0; b < word.length(); b++) {
-                    if (word.charAt(b) == '_') {
-                        word = word.substring(0, b) + " " + word.substring(b + 1, word.length());
+        return "";
+    }
+
+    public String getWord(String in) {
+        int numSpaces = 0;
+        for (int i = 0; ; i++) {
+            if (numSpaces == 3) {
+                for(int j = i; ; j++) {
+                    if(in.charAt(j) == '\t') {
+                        return in.substring(i, j);
                     }
                 }
-                return word;
+            }
+            if (in.charAt(i) == ' ') {
+                numSpaces++;
             }
         }
-        return word;
+    }
+
+    public String getStringType(String in) {
+        int numSpaces = 0;
+        for (int i = 0; ; i++) {
+            if (numSpaces == 2) {
+                return String.valueOf(in.charAt(i));
+            }
+            if (in.charAt(i) == '\t') {
+                numSpaces++;
+            }
+        }
+    }
+
+
+//    public String randomString(String path) {
+//        String document = getTermsString(path);
+//        String word = "";
+//        int beginningOfWord = 0;
+//        int randomNum2 = rand.nextInt(document.length() - 5);
+//        for (int p = 1; p < 30; p++) {
+//            if (document.charAt(randomNum2 - p) == ' ') {
+//                beginningOfWord = randomNum2 - p + 1;
+//                break;
+//            }
+//        }
+//        for (int p = 1; p < 30; p++) {
+//            if (document.charAt(beginningOfWord + p) == ' ') {
+//                word = document.substring(beginningOfWord, beginningOfWord + p);
+//                for (int b = 0; b < word.length(); b++) {
+//                    if (word.charAt(b) == '_') {
+//                        word = word.substring(0, b) + " " + word.substring(b + 1, word.length());
+//                    }
+//                }
+//                return word;
+//            }
+//        }
+//        return word;
+//    }
+
+    public String getTermsString(String fileName) {
+        StringBuilder termsString = new StringBuilder();
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(
+                    new InputStreamReader(getAssets().open(fileName + ".txt")));
+
+            String str;
+            while ((str = reader.readLine()) != null) {
+                termsString.append(str);
+            }
+
+            reader.close();
+            return termsString.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static String randomName(String path, Context context) {
@@ -397,16 +516,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public static String randomArticle() {
         int articleNum = rand.nextInt(20);
-        switch(articleNum) {
-            case 0: return "the";
-            case 1: return "some";
-            case 2: return "a";
-            case 3: return "no";
-            case 4: return "any";
-            case 5: return "such";
-            case 6: return "few";
-            case 7: return "every";
-            case 8: return "more";
+        switch (articleNum) {
+            case 0:
+                return "the";
+            case 1:
+                return "some";
+            case 2:
+                return "a";
+            case 3:
+                return "no";
+            case 4:
+                return "any";
+            case 5:
+                return "such";
+            case 6:
+                return "few";
+            case 7:
+                return "every";
+            case 8:
+                return "more";
         }
         return "";
     }
@@ -414,106 +542,180 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public static String randomConjunction() {
         Random rand = new Random();
         int conjunctionNum = rand.nextInt(20);
-        switch(conjunctionNum) {
-            case 0: return "for";
-            case 1: return "and";
-            case 2: return "nor";
-            case 3: return "but";
-            case 4: return "or";
-            case 5: return "yet";
-            case 6: return "so";
+        switch (conjunctionNum) {
+            case 0:
+                return "for";
+            case 1:
+                return "and";
+            case 2:
+                return "nor";
+            case 3:
+                return "but";
+            case 4:
+                return "or";
+            case 5:
+                return "yet";
+            case 6:
+                return "so";
         }
         return "";
     }
 
     public static String randomPreposition() {
         int prepositionNum = rand.nextInt(46);
-        switch(prepositionNum) {
-            case 0:  return "with";
-            case 1: return "         at";
-            case 2:return "from";
-            case 3: return "     into";
-            case 4:return "during";
-            case 5: return "      including                 ";
-            case 6: return"until";
-            case 7:return "       against";
-            case 8:return"among";
-            case 9:return    "    throughout";
-            case 10:return  "despite";
-            case 11: return   "        towards";
-            case 12: return  "upon";
-            case 13: return   "       concerning";
-            case 14:  return "of";
-            case 15: return    "       to";
-            case 16:  return  "in";
-            case 17:  return " for";
-            case 18: return  "on";
-            case 19:return     "      by";
-            case 20: return  "about";
-            case 21: return   "      like";
-            case 22: return  "through";
-            case 23:  return   "      over";
-            case 24: return  "before";
-            case 25: return   "       between";
-            case 26:  return " after";
-            case 27:  return   "       since";
-            case 28: return   "without";
-            case 29:  return "         under";
-            case 30: return "   within";
-            case 31: return "         along";
-            case 32: return    "following";
-            case 33: return   "       across";
-            case 34:  return "  behind";
-            case 35: return "           beyond";
-            case 36: return   " plus";
-            case 37: return  "         except";
-            case 38: return "  but";
-            case 39:return "           up";
-            case 40:return"     out";
-            case 41:  return   "      around";
-            case 42: return   "down";
-            case 43: return  "        off";
-            case 44: return "above";
-            case 45: return  "       near";
+        switch (prepositionNum) {
+            case 0:
+                return "with";
+            case 1:
+                return "         at";
+            case 2:
+                return "from";
+            case 3:
+                return "     into";
+            case 4:
+                return "during";
+            case 5:
+                return "      including                 ";
+            case 6:
+                return "until";
+            case 7:
+                return "       against";
+            case 8:
+                return "among";
+            case 9:
+                return "    throughout";
+            case 10:
+                return "despite";
+            case 11:
+                return "        towards";
+            case 12:
+                return "upon";
+            case 13:
+                return "       concerning";
+            case 14:
+                return "of";
+            case 15:
+                return "       to";
+            case 16:
+                return "in";
+            case 17:
+                return " for";
+            case 18:
+                return "on";
+            case 19:
+                return "      by";
+            case 20:
+                return "about";
+            case 21:
+                return "      like";
+            case 22:
+                return "through";
+            case 23:
+                return "      over";
+            case 24:
+                return "before";
+            case 25:
+                return "       between";
+            case 26:
+                return " after";
+            case 27:
+                return "       since";
+            case 28:
+                return "without";
+            case 29:
+                return "         under";
+            case 30:
+                return "   within";
+            case 31:
+                return "         along";
+            case 32:
+                return "following";
+            case 33:
+                return "       across";
+            case 34:
+                return "  behind";
+            case 35:
+                return "           beyond";
+            case 36:
+                return " plus";
+            case 37:
+                return "         except";
+            case 38:
+                return "  but";
+            case 39:
+                return "           up";
+            case 40:
+                return "     out";
+            case 41:
+                return "      around";
+            case 42:
+                return "down";
+            case 43:
+                return "        off";
+            case 44:
+                return "above";
+            case 45:
+                return "       near";
         }
         return "";
     }
 
     public static String randomGreeting() {
         int randomGreetingNum = rand.nextInt(13);
-            switch(randomGreetingNum) {
-                case 0: return "hello";
-                case 1: return "good morning";
-                case 2: return "what's up?";
-                case 3: return "good afternoon";
-                case 4: return "good evening";
-                case 5: return "how've you been?";
-                case 6: return "how's it going?";
-                case 7: return "hi";
-                case 8: return "how are you?";
-                case 9: return "hey";
-                case 10:return "see you later";
-                case 11:return "bye";
-                case 12:return "good night";
-            }
-            return "";
+        switch (randomGreetingNum) {
+            case 0:
+                return "hello";
+            case 1:
+                return "good morning";
+            case 2:
+                return "what's up?";
+            case 3:
+                return "good afternoon";
+            case 4:
+                return "good evening";
+            case 5:
+                return "how've you been?";
+            case 6:
+                return "how's it going?";
+            case 7:
+                return "hi";
+            case 8:
+                return "how are you?";
+            case 9:
+                return "hey";
+            case 10:
+                return "see you later";
+            case 11:
+                return "bye";
+            case 12:
+                return "good night";
         }
-
-        public static String randomQuestion() {
-            int randomQuestionNum = rand.nextInt(8);
-            switch(randomQuestionNum) {
-                case 0: return "why";
-                case 1: return "how";
-                case 2: return "where";
-                case 3: return "when";
-                case 4: return "how";
-                case 5: return "which";
-                case 6: return "who";
-                case 7: return "what";
-            }
-            return "";
-        }
-
+        return "";
     }
+
+    public static String randomQuestion() {
+        int randomQuestionNum = rand.nextInt(8);
+        switch (randomQuestionNum) {
+            case 0:
+                return "why";
+            case 1:
+                return "how";
+            case 2:
+                return "where";
+            case 3:
+                return "when";
+            case 4:
+                return "how";
+            case 5:
+                return "which";
+            case 6:
+                return "who";
+            case 7:
+                return "what";
+        }
+        return "";
+    }
+
+}
 
 

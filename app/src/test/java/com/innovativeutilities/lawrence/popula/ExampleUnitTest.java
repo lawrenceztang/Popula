@@ -1,4 +1,4 @@
-package com.example.lawrence.popula;
+package com.innovativeutilities.lawrence.popula;
 
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package com.example.lawrence.popula;
+package com.innovativeutilities.lawrence.popula;
 
 import android.content.Context;
 import android.content.Intent;
@@ -29,13 +29,13 @@ public class EnterMessage extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.enter_message_activity);
 
-        seekBarValue = findViewById(R.id.seek_bar_value);
-        percent = findViewById(R.id.percent_bar);
+//        seekBarValue = findViewById(R.id.seek_bar_value);
+//        percent = findViewById(R.id.percent_bar);
         okButton = findViewById(R.id.okButton);
         cancelButton = findViewById(R.id.cancelButton);
         okButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
-        percent.setOnSeekBarChangeListener(this);
+//        percent.setOnSeekBarChangeListener(this);
         customMessageEditText = findViewById(R.id.customMessageInput);
         customNameEditText = findViewById(R.id.customNameInput);
         customNameEditText.setOnEditorActionListener(this);
@@ -56,7 +56,7 @@ public class EnterMessage extends AppCompatActivity implements View.OnClickListe
                     intent.putExtra("customMessageInput", customMessageEditText.getText().toString());
                 }
                 else {
-                    customNameEditText.setHint("Empty Field!");
+                    customMessageEditText.setHint("Empty Field!");
                     return;
                 }
                 if(!customNameEditText.getText().toString().equals("")) {
@@ -66,12 +66,13 @@ public class EnterMessage extends AppCompatActivity implements View.OnClickListe
                     customNameEditText.setHint("Empty Field!");
                     return;
                 }
+//                intent.putExtra("percent", seekBarNum);
                 break;
             case R.id.cancelButton:
                 setResult(RESULT_CANCELED, intent);
                 finish();
         }
-        intent.putExtra("percent", seekBarNum);
+
         setResult(RESULT_OK, intent);
         finish();
     }
@@ -99,8 +100,8 @@ public class EnterMessage extends AppCompatActivity implements View.OnClickListe
     }
 
     public void onProgressChanged(SeekBar arg0, int progress, boolean fromUser) {
-        seekBarValue.setText(String.valueOf(progress));
-        seekBarNum = progress;
+//        seekBarValue.setText(String.valueOf(progress));
+//        seekBarNum = progress;
     }
 
     public void onStartTrackingTouch(SeekBar bar) {
