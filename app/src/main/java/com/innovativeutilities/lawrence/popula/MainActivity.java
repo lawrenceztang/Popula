@@ -192,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 intent.putExtra("weight", customWeight);
                 startActivityForResult(intent, 1);
+                break;
 //            case R.id.wordComplexityButton:
             case R.id.aboutButton:
                 intent = new Intent(this, AboutActivity.class);
@@ -378,24 +379,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch (sentenceStructure) {
                 case 1:
                     result[0] = "You are sooooo " + randomString(ADJECTIVE);
+                    break;
                 case 2:
                     result[0] = randomQuestion();
+                    break;
                 case 3:
-                    result[0] = randomGreeting() + " " + personName;
+                    result[0] = randomGreeting();
+                    break;
                 case 4:
-                    result[0] = randomString(VERB) + " " + randomString(ADVERB) + " " + personName;
+                    result[0] = randomString(VERB) + "s " + randomString(ADVERB);
+                    break;
                 case 5:
-                    result[0] = "Want to " + randomString(VERB) + " at my " + randomString(NOUN) + " " + personName;
+                    result[0] = "Want to " + randomString(VERB) + "s at my " + randomString(NOUN);
+                    break;
                 case 6:
-                    result[0] = randomQuestion() + " do you " + randomString(VERB) + " " + personName;
+                    result[0] = randomQuestion() + " do you " + randomString(VERB);
+                    break;
                 case 7:
-                    result[0] = randomString(VERB) + " " + randomPreposition() + " " + randomString(NOUN);
+                    result[0] = randomString(VERB) + randomPreposition() + " " + randomString(NOUN);
+                    break;
                 case 8:
                     result[0] = "talk to me pls";
+                    break;
                 case 9:
-                    result[0] = randomConjunction() + " " + randomArticle() + " " + randomString(ADJECTIVE) + " " + randomString(NOUN) + " " + randomString(VERB) + " " + randomString(ADVERB);
+                    result[0] = randomConjunction() + " " + randomArticle() + " " + randomString(ADJECTIVE) + " " + randomString(NOUN) + " " + randomString(VERB) + "s " + randomString(ADVERB);
+                    break;
             }
 
+        }
+        int addName = rand.nextInt(100);
+        if(addName < 10) {
+            result[0] = personName + " " + result[0];
         }
         return result;
     }
@@ -567,95 +581,95 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case 0:
                 return "with";
             case 1:
-                return "         at";
+                return "at";
             case 2:
                 return "from";
             case 3:
-                return "     into";
+                return "into";
             case 4:
                 return "during";
             case 5:
-                return "      including                 ";
+                return "including                 ";
             case 6:
                 return "until";
             case 7:
-                return "       against";
+                return "against";
             case 8:
                 return "among";
             case 9:
-                return "    throughout";
+                return "throughout";
             case 10:
                 return "despite";
             case 11:
-                return "        towards";
+                return "towards";
             case 12:
                 return "upon";
             case 13:
-                return "       concerning";
+                return "concerning";
             case 14:
                 return "of";
             case 15:
-                return "       to";
+                return "to";
             case 16:
                 return "in";
             case 17:
-                return " for";
+                return "for";
             case 18:
                 return "on";
             case 19:
-                return "      by";
+                return "by";
             case 20:
                 return "about";
             case 21:
-                return "      like";
+                return "like";
             case 22:
                 return "through";
             case 23:
-                return "      over";
+                return "over";
             case 24:
                 return "before";
             case 25:
-                return "       between";
+                return "between";
             case 26:
-                return " after";
+                return "after";
             case 27:
-                return "       since";
+                return "since";
             case 28:
                 return "without";
             case 29:
-                return "         under";
+                return "under";
             case 30:
-                return "   within";
+                return "within";
             case 31:
-                return "         along";
+                return "along";
             case 32:
                 return "following";
             case 33:
-                return "       across";
+                return "across";
             case 34:
-                return "  behind";
+                return "behind";
             case 35:
-                return "           beyond";
+                return "beyond";
             case 36:
-                return " plus";
+                return "plus";
             case 37:
-                return "         except";
+                return " except";
             case 38:
-                return "  but";
+                return "but";
             case 39:
-                return "           up";
+                return "up";
             case 40:
-                return "     out";
+                return "out";
             case 41:
-                return "      around";
+                return "around";
             case 42:
                 return "down";
             case 43:
-                return "        off";
+                return "off";
             case 44:
                 return "above";
             case 45:
-                return "       near";
+                return " near";
         }
         return "";
     }

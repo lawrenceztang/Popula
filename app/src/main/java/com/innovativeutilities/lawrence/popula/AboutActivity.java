@@ -34,7 +34,6 @@ public class AboutActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.add_message, menu);
         return true;
     }
 

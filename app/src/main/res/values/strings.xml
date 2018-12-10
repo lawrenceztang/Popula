@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">Popula</string>
+    <string name="app_name">Messages</string>
+    <string name="appeared_app_name">Popula</string>
 
 <!--data from https://www.ssa.gov/oact/babynames/limits.html-->
     <string name="person_names">1	Emma	Noah
@@ -1029,6 +1030,8 @@
     <string name="_50">50</string>
     <string name="about">About This App</string>
     <string name="names_about">Random names obtained from SSA top 1000 names: https://www.ssa.gov/oact/babynames/limits.html</string>
-    <string name="words_about">Random words obtained from Princeton WordNet: https://wordnet.princeton.edu/</string>
+    <string name="words_about">Random words obtained from Word frequency data: https://www.wordfrequency.info/</string>
     <string name="icon_about">App icon from user Wwalczyszyn on Iconfinder: https://www.iconfinder.com/icons/67502/android_chat_messages_r_icon/</string>
+    <string name="created_by">Created by Larry at Innovationary Studios</string>
+    <string name="acknowledgments">Acknowledgments</string>
 </resources>
