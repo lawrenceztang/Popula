@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -111,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         customMessages = new ArrayList<>();
         loadPreferences();
         nameEditText.setHint(personName);
-        frequencyEditText.setHint(Long.toString(timeBetweenMessages / 1000));
+        frequencyEditText.setHint(Integer.toString((int) (timeBetweenMessages / 1000)) + " seconds");
         numTextsEditText.setHint(Long.toString(numTexts));
 
 
@@ -314,8 +315,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
                 for (i = 0; i < numTexts; i++) {
+                    double wait = timeBetweenMessages * rand.nextDouble();
                     try {
-                        Thread.sleep((long) (timeBetweenMessages * rand.nextDouble()));
+                        Thread.sleep((long) (wait));
                     } catch (InterruptedException e) { //doesn't matter
                     }
                     if (!running) {
@@ -326,6 +328,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mBuilder.setContentTitle(messageNameArray[1]);
                     mNotificationManager.notify(notificationNum, mBuilder.build());
                     notificationNum++;
+
+                    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                    PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, "Tag");
+                    if(3000 > wait) {
+                        wl.acquire((long) wait);
+                    }
+                    wl.acquire(3000);
+                    wl.release();
                 }
                 runOnUiThread(new Runnable() {
                     @Override
@@ -352,7 +362,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public String[] randomSentenceName() {
         int randInt = rand.nextInt(100);
         String[] result = new String[2];
-        if (randInt < customWeight) {
+        if (randInt < customWeight && customMessages.size() != 0) {
 //            int whichOne = rand.nextInt(totalPercent);
 //            int total = 0;
 //            for (int i = 0; i < customPercents.size(); i++) {
@@ -369,7 +379,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                }
 //                total = total + customPercents.get(i);
 //            }
-
             int whichOne = rand.nextInt(customMessages.size());
             result[0] = customMessages.get(whichOne);
             result[1] = customNames.get(whichOne);
@@ -378,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int sentenceStructure = rand.nextInt(10);
             switch (sentenceStructure) {
                 case 1:
-                    result[0] = "You are sooooo " + randomString(ADJECTIVE);
+                    result[0] = "you are sooo " + randomString(ADJECTIVE);
                     break;
                 case 2:
                     result[0] = randomQuestion();
@@ -387,10 +396,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     result[0] = randomGreeting();
                     break;
                 case 4:
-                    result[0] = randomString(VERB) + "s " + randomString(ADVERB);
+                    result[0] = "he " + randomString(VERB) + "s " + randomString(ADVERB);
                     break;
                 case 5:
-                    result[0] = "Want to " + randomString(VERB) + "s at my " + randomString(NOUN);
+                    result[0] = "want to " + randomString(VERB) + " at my " + randomString(NOUN);
                     break;
                 case 6:
                     result[0] = randomQuestion() + " do you " + randomString(VERB);
